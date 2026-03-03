@@ -1,0 +1,42 @@
+name: Supabase Keepalive
+
+on:
+  schedule:
+    # Every 12 hours (UTC)
+    - cron: "17 */12 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping-sites:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping keepalive endpoints
+        env:
+          KEEPALIVE_URL_SITE_1: ${{ secrets.KEEPALIVE_URL_SITE_1 }}
+          KEEPALIVE_URL_SITE_2: ${{ secrets.KEEPALIVE_URL_SITE_2 }}
+        run: |
+          set -euo pipefail
+
+          urls=()
+          if [ -n "${KEEPALIVE_URL_SITE_1:-}" ]; then
+            urls+=("$KEEPALIVE_URL_SITE_1")
+          fi
+          if [ -n "${KEEPALIVE_URL_SITE_2:-}" ]; then
+            urls+=("$KEEPALIVE_URL_SITE_2")
+          fi
+
+          if [ "${#urls[@]}" -eq 0 ]; then
+            echo "No keepalive URLs configured. Set KEEPALIVE_URL_SITE_1 (and optionally _SITE_2)."
+            exit 1
+          fi
+
+          for url in "${urls[@]}"; do
+            echo "Pinging $url"
+            status_code="$(curl -sS -o /tmp/keepalive_response.txt -w "%{http_code}" "$url")"
+            echo "HTTP $status_code"
+            if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 300 ]; then
+              echo "Keepalive failed for $url"
+              cat /tmp/keepalive_response.txt
+              exit 1
+            fi
+          done
