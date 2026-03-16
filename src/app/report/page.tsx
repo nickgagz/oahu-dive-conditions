@@ -14,7 +14,7 @@ import { ForecastSnapshot } from "@/lib/types";
 import { submitReport, saveForecastSnapshot } from "@/lib/data";
 import SharePost from "@/components/SharePost";
 import { ShareData } from "@/lib/share";
-import { DIVE_SITES, getDefaultSite } from "@/lib/sites";
+import { DIVE_SITES, getDefaultSite, getSiteById } from "@/lib/sites";
 
 const VIS_OPTIONS: VisibilityCategory[] = [
   "excellent (80+ ft)",
@@ -62,7 +62,15 @@ export default function ReportPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Site selection
-  const [selectedSite, setSelectedSite] = useState<DiveSite>(getDefaultSite);
+  const [selectedSite, setSelectedSite] = useState<DiveSite>(() => {
+    if (typeof window === "undefined") {
+      return getDefaultSite();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const requestedSiteId = params.get("siteId") ?? params.get("site");
+    return requestedSiteId ? getSiteById(requestedSiteId) ?? getDefaultSite() : getDefaultSite();
+  });
 
   // Step 1: Date/Time (pre-filled)
   const [date, setDate] = useState(getDefaultDate);

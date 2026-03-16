@@ -17,6 +17,10 @@ const DEFAULT_SWELL_HEIGHT_TOLERANCE = 1.0; // ± ft
 const DEFAULT_PERIOD_TOLERANCE = 3; // ± seconds
 const MIN_REPORTS_THRESHOLD = 5;
 
+function roundToOneDecimal(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
 // ─── Adjacent swell direction buckets ───────────────────────────────────────
 
 const DIRECTION_NEIGHBORS: Record<SwellDirectionBucket, SwellDirectionBucket[]> = {
@@ -39,13 +43,17 @@ function getMatchingDirections(dir: SwellDirectionBucket): SwellDirectionBucket[
 export function buildDefaultFilters(forecast: ForecastSnapshot): MatchingFilters {
   return {
     swell_height_range: [
-      Math.max(0, forecast.swell_height - DEFAULT_SWELL_HEIGHT_TOLERANCE),
-      forecast.swell_height + DEFAULT_SWELL_HEIGHT_TOLERANCE,
+      roundToOneDecimal(
+        Math.max(0, forecast.swell_height - DEFAULT_SWELL_HEIGHT_TOLERANCE)
+      ),
+      roundToOneDecimal(forecast.swell_height + DEFAULT_SWELL_HEIGHT_TOLERANCE),
     ],
     swell_directions: getMatchingDirections(forecast.swell_direction),
     swell_period_range: [
-      Math.max(0, forecast.swell_period - DEFAULT_PERIOD_TOLERANCE),
-      forecast.swell_period + DEFAULT_PERIOD_TOLERANCE,
+      roundToOneDecimal(
+        Math.max(0, forecast.swell_period - DEFAULT_PERIOD_TOLERANCE)
+      ),
+      roundToOneDecimal(forecast.swell_period + DEFAULT_PERIOD_TOLERANCE),
     ],
     wind_categories: [forecast.wind_category],
   };

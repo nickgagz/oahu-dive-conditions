@@ -1,9 +1,15 @@
 "use client";
 
+import { useMemo } from "react";
 import { DiveReport, ForecastSnapshot } from "@/lib/types";
 
+export type ReportFeedTab = "matching" | "latest";
+
 interface ReportFeedProps {
-  reports: DiveReport[];
+  matchingReports: DiveReport[];
+  latestReports: DiveReport[];
+  activeTab: ReportFeedTab;
+  onTabChange: (tab: ReportFeedTab) => void;
   forecasts?: Map<string, ForecastSnapshot>;
 }
 
@@ -89,27 +95,91 @@ function ReportCard({
   );
 }
 
-export default function ReportFeed({ reports, forecasts }: ReportFeedProps) {
-  const sorted = [...reports].sort(
-    (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+export default function ReportFeed({
+  matchingReports,
+  latestReports,
+  activeTab,
+  onTabChange,
+  forecasts,
+}: ReportFeedProps) {
+  const sortedMatching = useMemo(
+    () =>
+      [...matchingReports].sort(
+        (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+      ),
+    [matchingReports]
   );
+
+  const sortedLatest = useMemo(
+    () =>
+      [...latestReports].sort(
+        (a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+      ),
+    [latestReports]
+  );
+
+  const activeReports = activeTab === "matching" ? sortedMatching : sortedLatest;
+  const matchingCount = sortedMatching.length;
+  const latestCount = sortedLatest.length;
+
+  const subtitle =
+    activeTab === "matching"
+      ? "Historical reports that match your current forecast filters."
+      : "Most recent reports for this site, regardless of filter match.";
 
   return (
     <section className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-5">
       <h2 className="text-base sm:text-lg font-semibold text-slate-800 mb-1">
-        Historical Dive Reports
+        Dive Reports
       </h2>
-      <p className="text-xs text-slate-500 mb-3 sm:mb-4">
-        Individual reports matching current filters, most recent first.
-      </p>
 
-      {sorted.length === 0 ? (
-        <p className="text-sm text-slate-500 text-center py-4">
-          No reports match the current filters.
-        </p>
+      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-1 mt-2">
+        <button
+          type="button"
+          onClick={() => onTabChange("matching")}
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            activeTab === "matching"
+              ? "bg-white text-blue-700 shadow-sm"
+              : "text-slate-600 hover:text-slate-800"
+          }`}
+        >
+          Matching ({matchingCount})
+        </button>
+        <button
+          type="button"
+          onClick={() => onTabChange("latest")}
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            activeTab === "latest"
+              ? "bg-white text-blue-700 shadow-sm"
+              : "text-slate-600 hover:text-slate-800"
+          }`}
+        >
+          Latest ({latestCount})
+        </button>
+      </div>
+
+      <p className="text-xs text-slate-500 mt-3 mb-3 sm:mb-4">{subtitle}</p>
+
+      {activeReports.length === 0 ? (
+        <div className="text-center py-4 space-y-2">
+          <p className="text-sm text-slate-500">
+            {activeTab === "matching"
+              ? "No reports match the current filters."
+              : "No reports available for this site yet."}
+          </p>
+          {activeTab === "matching" && latestCount > 0 && (
+            <button
+              type="button"
+              onClick={() => onTabChange("latest")}
+              className="text-sm font-medium text-blue-700 hover:text-blue-800"
+            >
+              View latest reports instead
+            </button>
+          )}
+        </div>
       ) : (
         <div className="space-y-3">
-          {sorted.map((report) => (
+          {activeReports.map((report) => (
             <ReportCard
               key={report.id}
               report={report}

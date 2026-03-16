@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import dynamic from "next/dynamic";
 import { DiveSite } from "@/lib/types";
 import { DIVE_SITES } from "@/lib/sites";
@@ -20,17 +19,22 @@ const SiteMap = dynamic(() => import("./SiteMap"), {
 interface SiteSelectorProps {
   activeSite: DiveSite;
   onSiteChange: (site: DiveSite) => void;
+  view: "list" | "map";
+  onViewChange: (view: "list" | "map") => void;
 }
 
-export default function SiteSelector({ activeSite, onSiteChange }: SiteSelectorProps) {
-  const [view, setView] = useState<"list" | "map">("list");
-
+export default function SiteSelector({
+  activeSite,
+  onSiteChange,
+  view,
+  onViewChange,
+}: SiteSelectorProps) {
   if (view === "map") {
     return (
       <div className="space-y-2">
         <div className="flex justify-end">
           <button
-            onClick={() => setView("list")}
+            onClick={() => onViewChange("list")}
             className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 rounded transition-colors"
           >
             ☰ List view
@@ -56,7 +60,7 @@ export default function SiteSelector({ activeSite, onSiteChange }: SiteSelectorP
           Dive Site
         </h2>
         <button
-          onClick={() => setView("map")}
+          onClick={() => onViewChange("map")}
           className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 rounded transition-colors"
         >
           🗺️ Map view

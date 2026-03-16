@@ -10,6 +10,7 @@ import HistoricalSummary from "@/components/HistoricalSummary";
 import MatchingControls from "@/components/MatchingControls";
 import ExploreOtherTimes, { getCurrentSlot } from "@/components/ExploreOtherTimes";
 import ReportFeed from "@/components/ReportFeed";
+import type { ReportFeedTab } from "@/components/ReportFeed";
 import ContributionCTA from "@/components/ContributionCTA";
 import {
   fetchReportsWithForecasts,
@@ -56,8 +57,14 @@ function HomePageInner() {
     return getDefaultSite();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const initialReportTab = useMemo<ReportFeedTab>(() => {
+    return searchParams.get("reports") === "latest" ? "latest" : "matching";
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Active dive site
   const [activeSite, setActiveSite] = useState<DiveSite>(initialSite);
+  const [siteSelectorView, setSiteSelectorView] = useState<"list" | "map">("list");
+  const [reportTab, setReportTab] = useState<ReportFeedTab>(initialReportTab);
 
   const [selectedDate, setSelectedDate] = useState(getDefaultDate);
   const [selectedTime, setSelectedTime] = useState(getDefaultTime);
@@ -196,6 +203,21 @@ function HomePageInner() {
     setCustomFilters(null);
   }, []);
 
+  const handleReportTabChange = useCallback(
+    (tab: ReportFeedTab) => {
+      setReportTab(tab);
+      const params = new URLSearchParams(window.location.search);
+      if (tab === "latest") {
+        params.set("reports", "latest");
+      } else {
+        params.delete("reports");
+      }
+      const qs = params.toString();
+      router.replace(qs ? `/?${qs}` : "/", { scroll: false });
+    },
+    [router]
+  );
+
   return (
     <div className="min-h-screen bg-slate-100 w-full overflow-x-hidden">
       <Header site={activeSite} />
@@ -241,7 +263,12 @@ function HomePageInner() {
           <div className="lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-6 space-y-4 sm:space-y-5 lg:space-y-0">
             {/* ─── Left sidebar (controls) ─── */}
             <div className="min-w-0 space-y-4 sm:space-y-5 lg:self-start lg:sticky lg:top-6">
-              <SiteSelector activeSite={activeSite} onSiteChange={handleSiteChange} />
+              <SiteSelector
+                activeSite={activeSite}
+                onSiteChange={handleSiteChange}
+                view={siteSelectorView}
+                onViewChange={setSiteSelectorView}
+              />
 
               <DiveTimeSelector
                 selectedDate={selectedDate}
@@ -287,10 +314,16 @@ function HomePageInner() {
               )}
 
               {activeFilters && (
-                <ReportFeed reports={matchingReports} forecasts={allForecasts} />
+                <ReportFeed
+                  matchingReports={matchingReports}
+                  latestReports={allReports}
+                  activeTab={reportTab}
+                  onTabChange={handleReportTabChange}
+                  forecasts={allForecasts}
+                />
               )}
 
-              <ContributionCTA />
+              <ContributionCTA siteName={activeSite.name} siteId={activeSite.id} />
             </div>
           </div>
         )}

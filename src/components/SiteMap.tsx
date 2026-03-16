@@ -99,7 +99,15 @@ export default function SiteMap({ activeSite, onSiteChange }: SiteMapProps) {
             <p style="font-size:11px;color:#64748b;margin:4px 0 0;line-height:1.4;">${site.exposure_notes}</p>
           </div>`,
           { closeButton: false, maxWidth: 220 }
-        );
+        )
+        .bindTooltip(site.name, {
+          direction: "top",
+          offset: [0, -14],
+          opacity: 0.95,
+        });
+
+      marker.on("mouseover", () => marker.openTooltip());
+      marker.on("mouseout", () => marker.closeTooltip());
 
       marker.on("click", () => {
         onSiteChange(site);

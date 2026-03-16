@@ -13,6 +13,14 @@ const ALL_SWELL_DIRECTIONS: SwellDirectionBucket[] = [
 
 const ALL_WIND_CATEGORIES: WindCategory[] = ["offshore", "onshore", "cross"];
 
+function toOneDecimal(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+function parseOneDecimal(raw: string): number {
+  return toOneDecimal(parseFloat(raw) || 0);
+}
+
 export default function MatchingControls({
   filters,
   onFiltersChange,
@@ -58,13 +66,13 @@ export default function MatchingControls({
               inputMode="decimal"
               min={0}
               max={20}
-              step={0.5}
-              value={filters.swell_height_range[0]}
+              step={0.1}
+              value={toOneDecimal(filters.swell_height_range[0])}
               onChange={(e) =>
                 onFiltersChange({
                   ...filters,
                   swell_height_range: [
-                    parseFloat(e.target.value) || 0,
+                    parseOneDecimal(e.target.value),
                     filters.swell_height_range[1],
                   ],
                 })
@@ -77,14 +85,14 @@ export default function MatchingControls({
               inputMode="decimal"
               min={0}
               max={20}
-              step={0.5}
-              value={filters.swell_height_range[1]}
+              step={0.1}
+              value={toOneDecimal(filters.swell_height_range[1])}
               onChange={(e) =>
                 onFiltersChange({
                   ...filters,
                   swell_height_range: [
                     filters.swell_height_range[0],
-                    parseFloat(e.target.value) || 0,
+                    parseOneDecimal(e.target.value),
                   ],
                 })
               }
@@ -101,16 +109,16 @@ export default function MatchingControls({
           <div className="flex items-center gap-2">
             <input
               type="number"
-              inputMode="numeric"
+              inputMode="decimal"
               min={0}
               max={25}
-              step={1}
-              value={filters.swell_period_range[0]}
+              step={0.1}
+              value={toOneDecimal(filters.swell_period_range[0])}
               onChange={(e) =>
                 onFiltersChange({
                   ...filters,
                   swell_period_range: [
-                    parseFloat(e.target.value) || 0,
+                    parseOneDecimal(e.target.value),
                     filters.swell_period_range[1],
                   ],
                 })
@@ -120,17 +128,17 @@ export default function MatchingControls({
             <span className="text-slate-400 text-sm">&ndash;</span>
             <input
               type="number"
-              inputMode="numeric"
+              inputMode="decimal"
               min={0}
               max={25}
-              step={1}
-              value={filters.swell_period_range[1]}
+              step={0.1}
+              value={toOneDecimal(filters.swell_period_range[1])}
               onChange={(e) =>
                 onFiltersChange({
                   ...filters,
                   swell_period_range: [
                     filters.swell_period_range[0],
-                    parseFloat(e.target.value) || 0,
+                    parseOneDecimal(e.target.value),
                   ],
                 })
               }
